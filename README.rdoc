@@ -2,8 +2,10 @@ This is a simple Rails 4.1 application to try  `mailboxer` gem along with multip
 
 Current Issues:
 Logged in user cannot view the conversations. Asks for login as an employee
+
 Employee doesn't send mail to itself or user email. undefined method `conversation_params' for #<ConversationsController:0xb958bb0>
 Note : Could not check user-employee emails as login problems mentioned above.
+
 
 Better error points the error out around lines  57-59 in the conversations controller  ie 
 def recipient_emails
