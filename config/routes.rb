@@ -1,4 +1,5 @@
 Messaging::Application.routes.draw do
+  devise_for :employees
   root to: 'home#show'
 
   devise_for :users

@@ -1,57 +1,68 @@
 class ConversationsController < ApplicationController
-  before_filter :authenticate_user!
+  before_filter :authenicate
+  before_filter :find_model, only: [:reply, :trash, :untrash]
   helper_method :mailbox, :conversation
 
   def create
-    recipient_emails = conversation_params(:recipients).split(',')
-    recipients = User.where(email: recipient_emails).all
-
-    conversation = current_user.
-      send_message(recipients, *conversation_params(:body, :subject)).conversation
-
+    recipients   = User.where(email: recipient_emails).all
+    to           = user_signed_in? ? current_user : current_employee
+    conversation = to.send_message(recipients,*convo_attrs).conversation
     redirect_to conversation_path(conversation)
   end
 
   def reply
-    current_user.reply_to_conversation(conversation, *message_params(:body, :subject))
-    redirect_to conversation_path(conversation)
+    current_user.reply_to_conversation @model, *message_params
+    redirect_to conversation_path(@model)
   end
 
   def trash
-    conversation.move_to_trash(current_user)
+    @model.move_to_trash current_user
     redirect_to :conversations
   end
 
   def untrash
-    conversation.untrash(current_user)
+    @model.untrash current_user
     redirect_to :conversations
   end
 
   private
 
   def mailbox
-    @mailbox ||= current_user.mailbox
+    @mailbox ||= user_signed_in? ? current_user.mailbox : current_employee.mailbox
+  end
+
+
+  def find_model
+    @model ||= mailbox.conversations.find(params[:id])
   end
 
   def conversation
-    @conversation ||= mailbox.conversations.find(params[:id])
+    @model
   end
 
-  def conversation_params(*keys)
-    fetch_params(:conversation, *keys)
+
+  def message_params
+    params.require(:message).
+      permit :body,
+             :subject
   end
 
-  def message_params(*keys)
-    fetch_params(:message, *keys)
+  def convo_params
+    params.require(:conversation).
+      permit :body,
+             :subject,
+             :recipients
   end
 
-  def fetch_params(key, *subkeys)
-    params[key].instance_eval do
-      case subkeys.size
-      when 0 then self
-      when 1 then self[subkeys.first]
-      else subkeys.map{|k| self[k] }
-      end
-    end
+  def recipient_emails
+    convo_params(:recipients).split(',')
+  end
+
+  def convo_attrs
+    [convo_params[:body],[:subject]]
+  end
+
+  def authenicate
+    authenticate_employee! || authenticate_user!
   end
 end

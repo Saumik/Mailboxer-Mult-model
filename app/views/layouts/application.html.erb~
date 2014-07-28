@@ -18,7 +18,7 @@
   <% elsif employee_signed_in?   %>
     <p><%= link_to 'My Conversations', :conversations %> Logged in as employee</p>
 <% else %>
-<p>Please, <%= link_to 'sign in', :new_user_session %> or as employee <%= link_to 'sign in', :new_employee_session %></p>
+<p>Please, <%= link_to 'sign in', :new_user_session %></p>
   <% end %>
   <%= yield %>
 </body>
